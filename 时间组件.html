@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>环形进度组件</title>
+    <style>
+        /* 页面基础重置与布局 */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #333;
+            /* 模拟深色背景，可根据实际调整 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            /* 模拟苹果风格字体 */
+            color: #fff;
+        }
+
+        /* 组件容器样式 */
+        .widget-container {
+            display: flex;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.6);
+            /* 半透黑背景，接近原组件风格 */
+            border-radius: 12px;
+            padding: 16px 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 文本信息区域样式 */
+        .text-info {
+            display: flex;
+            flex-direction: column;
+            margin-right: 24px;
+        }
+
+        .text-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .text-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            /* 圆是通过设置border-radius和width/height来实现的 */
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .dot-today {
+            background-color: #84c677;
+            /* 今日绿色 */
+        }
+
+        .dot-month {
+            background-color: #e7e24d;
+            /* 本月黄色 */
+        }
+
+        .dot-year {
+            background-color: #ee3e50;
+            /* 今年红色 */
+        }
+
+        .text-item span {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        span.percentage {
+            font-weight: 900;
+            font-style: italic;    /* 斜体效果 */
+            margin-left: 4px;
+        }
+        /* SVG 环形进度容器 */
+        .circle-container {
+            width: 120px;
+            height: 120px;
+            transform: rotate(-90, 60, 60);
+            position: relative;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="widget-container">
+        <!-- 文本信息部分 -->
+        <div class="text-info">
+            <div class="text-item">
+                <div class="dot dot-today"></div>
+                <span>今日 <span class="percentage" id="today-percentage">0%</span></span>
+            </div>
+            <div class="text-item">
+                <div class="dot dot-month"></div>
+                <span>本月 <span class="percentage" id="month-percentage">0%</span></span>
+            </div>
+            <div class="text-item">
+                <div class="dot dot-year"></div>
+                <span>今年 <span class="percentage" id="year-percentage">0%</span></span>
+            </div>
+        </div>
+
+        <!-- SVG 环形进度部分 -->
+        <div class="circle-container">
+            <svg width="120" height="120" viewBox="0 0 120 120">
+                        <!-- 最外层暗色背景（今年） -->
+                        <circle cx="60" cy="60" r="50" fill="transparent" stroke="#ee3e5040" stroke-width="13" stroke-dasharray="314.16"
+                            stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90, 60, 60)"></circle>
+                        <!-- 最外层亮色进度（今年） -->
+                        <circle cx="60" cy="60" r="50" fill="transparent" stroke="#ee3e50" stroke-width="13" stroke-dasharray="314.16"
+                            stroke-dashoffset="314.16" id="year-circle" stroke-linecap="round" transform="rotate(-90, 60, 60)"></circle>
+                        
+                        <!-- 中间层暗色背景（本月） -->
+                        <circle cx="60" cy="60" r="35" fill="transparent" stroke="#e7e24d40" stroke-width="13" stroke-dasharray="238.76"
+                            stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90, 60, 60)"></circle>
+                        <!-- 中间层亮色进度（本月） -->
+                        <circle cx="60" cy="60" r="35" fill="transparent" stroke="#e7e24d" stroke-width="13" stroke-dasharray="238.76"
+                            stroke-dashoffset="238.76" id="month-circle" stroke-linecap="round" transform="rotate(-90, 60, 60)"></circle>
+                        
+                        <!-- 内层暗色背景（今日） -->
+                        <circle cx="60" cy="60" r="20" fill="transparent" stroke="#84c67740" stroke-width="13" stroke-dasharray="163.36"
+                            stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90, 60, 60)"></circle>
+                        <!-- 内层亮色进度（今日） -->
+                        <circle cx="60" cy="60" r="20" fill="transparent" stroke="#84c677" stroke-width="13" stroke-dasharray="163.36"
+                            stroke-dashoffset="163.36" id="today-circle" stroke-linecap="round" transform="rotate(-90, 60, 60)"></circle>
+
+                <!-- 添加文本标记 -->
+                <!-- Y标记（最外层） -->
+                <text x="60" y="14" text-anchor="middle" font-size="12" fill="white" font-weight="bold">Y</text>
+                <!-- M标记（中间层） -->
+                <text x="60" y="30" text-anchor="middle" font-size="12" fill="white" font-weight="bold">M</text>
+                <!-- D标记（内层） -->
+                <text x="60" y="44" text-anchor="middle" font-size="12" fill="white" font-weight="bold">D</text>
+            </svg>
+        </div>
+    </div>
+
+    <script>
+        
+        // 计算今日百分比
+            function calculateTodayPercentage() {
+                const now = new Date();
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                const seconds = now.getSeconds();
+                const totalSecondsInDay = 24 * 60 * 60;
+                const currentSeconds = hours * 3600 + minutes * 60 + seconds;
+                return ((currentSeconds / totalSecondsInDay) * 100).toFixed(1);
+            }
+
+            // 计算本月百分比
+            function calculateMonthPercentage() {
+                const now = new Date();
+                const currentDate = now.getDate();
+                const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                return ((currentDate / daysInMonth) * 100).toFixed(1);
+            }
+
+            // 计算今年百分比
+            function calculateYearPercentage() {
+                const now = new Date();
+                const startOfYear = new Date(now.getFullYear(), 0, 1);
+                const diff = now - startOfYear;
+                const oneDay = 1000 * 60 * 60 * 24;
+                const dayOfYear = Math.floor(diff / oneDay);
+                const isLeapYear = (now.getFullYear() % 4 === 0 && now.getFullYear() % 100 !== 0) || (now.getFullYear() % 400 === 0);
+                const daysInYear = isLeapYear ? 366 : 365;
+                return ((dayOfYear / daysInYear) * 100).toFixed(1);
+            }
+
+            // 更新今日百分比
+            function updateTodayPercentage() {
+                const percentage = calculateTodayPercentage();
+                document.getElementById('today-percentage').textContent = percentage + '%';
+                setCircleProgress('today-circle', percentage);
+            }
+
+            // 更新月度百分比
+            function updateMonthPercentage() {
+                const percentage = calculateMonthPercentage();
+                document.getElementById('month-percentage').textContent = percentage + '%';
+                setCircleProgress('month-circle', percentage);
+            }
+
+            // 更新年度百分比
+            function updateYearPercentage() {
+                const percentage = calculateYearPercentage();
+                document.getElementById('year-percentage').textContent = percentage + '%';
+                setCircleProgress('year-circle', percentage);
+            }
+
+            // 计算环形进度的偏移量
+            function setCircleProgress(circleId, percent) {
+                const circle = document.getElementById(circleId);
+                const radius = circle.getAttribute('r');
+                const circumference = 2 * Math.PI * radius;
+                circle.setAttribute('stroke-dasharray', circumference);
+                const offset = circumference - (percent / 100) * circumference;
+                circle.setAttribute('stroke-dashoffset', offset);
+            }
+
+            // 初始化所有百分比
+            function initializePercentages() {
+                updateTodayPercentage();
+                updateMonthPercentage();
+                updateYearPercentage();
+            }
+
+            // 设置定时器
+            function setupTimers() {
+                // 每分钟更新今日百分比
+                setInterval(updateTodayPercentage, 60000);
+                // 计算到下一个凌晨的时间
+                const now = new Date();
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(0, 0, 0, 0);
+                const msUntilMidnight = tomorrow - now;
+                // 在凌晨更新所有百分比
+                setTimeout(() => {
+                    updatePercentages();
+                    // 之后每天凌晨更新一次
+                    setInterval(updatePercentages, 24 * 60 * 60 * 1000);
+                }, msUntilMidnight);
+            }
+
+            // 初始化
+            initializePercentages();
+            setupTimers();
+    </script>
+
+</body>
+
+</html>
